@@ -1,0 +1,398 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 <!DOCTYPE html>\
+<html lang="en">\
+<head>\
+    <meta charset="UTF-8">\
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">\
+    <title>Commander Deck Picker</title>\
+    <style>\
+        * \{\
+            margin: 0;\
+            padding: 0;\
+            box-sizing: border-box;\
+        \}\
+\
+        body \{\
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;\
+            background: linear-gradient(135deg, #1e1b4b 0%, #1e3a8a 50%, #312e81 100%);\
+            min-height: 100vh;\
+            padding: 2rem 1rem;\
+        \}\
+\
+        .container \{\
+            max-width: 800px;\
+            margin: 0 auto;\
+        \}\
+\
+        .card \{\
+            background: rgba(255, 255, 255, 0.1);\
+            backdrop-filter: blur(10px);\
+            border-radius: 1.5rem;\
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);\
+            padding: 2rem;\
+            border: 1px solid rgba(255, 255, 255, 0.2);\
+        \}\
+\
+        h1 \{\
+            font-size: 2.5rem;\
+            font-weight: bold;\
+            color: white;\
+            text-align: center;\
+            margin-bottom: 0.5rem;\
+        \}\
+\
+        .subtitle \{\
+            color: #d8b4fe;\
+            text-align: center;\
+            margin-bottom: 2rem;\
+        \}\
+\
+        .section-title \{\
+            color: white;\
+            font-size: 1.125rem;\
+            font-weight: 600;\
+            margin-bottom: 1rem;\
+        \}\
+\
+        .bracket-grid \{\
+            display: grid;\
+            grid-template-columns: repeat(2, 1fr);\
+            gap: 1rem;\
+            margin-bottom: 2rem;\
+        \}\
+\
+        @media (min-width: 768px) \{\
+            .bracket-grid \{\
+                grid-template-columns: repeat(4, 1fr);\
+            \}\
+        \}\
+\
+        .bracket-btn \{\
+            padding: 1rem 1.5rem;\
+            border-radius: 0.75rem;\
+            font-weight: bold;\
+            font-size: 1.125rem;\
+            cursor: pointer;\
+            border: none;\
+            background: rgba(255, 255, 255, 0.2);\
+            color: white;\
+            transition: all 0.2s;\
+            text-align: center;\
+        \}\
+\
+        .bracket-btn:hover \{\
+            background: rgba(255, 255, 255, 0.3);\
+            transform: scale(1.05);\
+        \}\
+\
+        .bracket-btn.selected \{\
+            background: #a855f7;\
+            box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.4);\
+            transform: scale(1.05);\
+        \}\
+\
+        .bracket-number \{\
+            font-size: 1.5rem;\
+            margin-bottom: 0.25rem;\
+        \}\
+\
+        .bracket-count \{\
+            font-size: 0.75rem;\
+            opacity: 0.8;\
+        \}\
+\
+        .shuffle-btn \{\
+            width: 100%;\
+            background: linear-gradient(to right, #a855f7, #ec4899);\
+            color: white;\
+            font-weight: bold;\
+            padding: 1rem 2rem;\
+            border-radius: 0.75rem;\
+            border: none;\
+            cursor: pointer;\
+            font-size: 1.25rem;\
+            display: flex;\
+            align-items: center;\
+            justify-content: center;\
+            gap: 0.75rem;\
+            transition: all 0.2s;\
+            box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.4);\
+        \}\
+\
+        .shuffle-btn:hover \{\
+            background: linear-gradient(to right, #9333ea, #db2777);\
+            transform: scale(1.05);\
+        \}\
+\
+        .result-card \{\
+            margin-top: 2rem;\
+            background: rgba(255, 255, 255, 0.2);\
+            backdrop-filter: blur(10px);\
+            border-radius: 0.75rem;\
+            padding: 1.5rem;\
+            border: 1px solid rgba(255, 255, 255, 0.3);\
+            animation: fadeIn 0.3s ease-in;\
+        \}\
+\
+        @keyframes fadeIn \{\
+            from \{\
+                opacity: 0;\
+                transform: translateY(10px);\
+            \}\
+            to \{\
+                opacity: 1;\
+                transform: translateY(0);\
+            \}\
+        \}\
+\
+        .result-header \{\
+            display: flex;\
+            justify-content: space-between;\
+            align-items: start;\
+            margin-bottom: 1rem;\
+            gap: 1rem;\
+        \}\
+\
+        .deck-name \{\
+            font-size: 1.5rem;\
+            font-weight: bold;\
+            color: white;\
+            flex: 1;\
+        \}\
+\
+        .bracket-badge \{\
+            background: #a855f7;\
+            color: white;\
+            padding: 0.25rem 0.75rem;\
+            border-radius: 9999px;\
+            font-size: 0.875rem;\
+            font-weight: bold;\
+            white-space: nowrap;\
+        \}\
+\
+        .deck-link \{\
+            color: #d8b4fe;\
+            text-decoration: underline;\
+            font-size: 0.875rem;\
+        \}\
+\
+        .deck-link:hover \{\
+            color: #e9d5ff;\
+        \}\
+\
+        .stats-card \{\
+            margin-top: 2rem;\
+            background: rgba(255, 255, 255, 0.1);\
+            border-radius: 0.5rem;\
+            padding: 1rem;\
+        \}\
+\
+        .stats-title \{\
+            color: white;\
+            font-weight: 600;\
+            margin-bottom: 0.5rem;\
+        \}\
+\
+        .stats-grid \{\
+            display: grid;\
+            grid-template-columns: repeat(4, 1fr);\
+            gap: 0.5rem;\
+            text-align: center;\
+            color: white;\
+        \}\
+\
+        .stat-number \{\
+            font-size: 1.5rem;\
+            font-weight: bold;\
+            color: #d8b4fe;\
+        \}\
+\
+        .stat-label \{\
+            font-size: 0.75rem;\
+            opacity: 0.75;\
+        \}\
+\
+        .stats-total \{\
+            text-align: center;\
+            margin-top: 0.75rem;\
+            padding-top: 0.75rem;\
+            border-top: 1px solid rgba(255, 255, 255, 0.2);\
+            color: white;\
+        \}\
+\
+        .no-result \{\
+            text-align: center;\
+            color: white;\
+            font-size: 1.125rem;\
+        \}\
+\
+        svg \{\
+            display: inline-block;\
+            vertical-align: middle;\
+        \}\
+    </style>\
+</head>\
+<body>\
+    <div class="container">\
+        <div class="card">\
+            <h1>Commander Deck Picker</h1>\
+            <p class="subtitle">Select a bracket and get a random deck</p>\
+\
+            <div>\
+                <label class="section-title">Choose Bracket:</label>\
+                <div class="bracket-grid" id="bracketGrid"></div>\
+            </div>\
+\
+            <button class="shuffle-btn" onclick="getRandomDeck()">\
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">\
+                    <polyline points="16 3 21 3 21 8"></polyline>\
+                    <line x1="4" y1="20" x2="21" y2="3"></line>\
+                    <polyline points="21 16 21 21 16 21"></polyline>\
+                    <line x1="15" y1="15" x2="21" y2="21"></line>\
+                    <line x1="4" y1="4" x2="9" y2="9"></line>\
+                </svg>\
+                Get Random Deck\
+            </button>\
+\
+            <div id="result"></div>\
+\
+            <div class="stats-card">\
+                <h3 class="stats-title">Deck Statistics:</h3>\
+                <div class="stats-grid" id="statsGrid"></div>\
+                <div class="stats-total" id="statsTotal"></div>\
+            </div>\
+        </div>\
+    </div>\
+\
+    <script>\
+        // Deck data with correct brackets and URLs\
+        const decks = [\
+            \{ name: "Kaalia, Cheat in Play", bracket: 4, url: "https://archidekt.com/decks/12724013/kaalia_cheat_in_play" \},\
+            \{ name: "Indominus Rex Keyword Soup", bracket: 3, url: "https://archidekt.com/decks/17452615/indominus_rex_keyword_soup"\},\
+            \{ name: "Selvala, How to Big Mana Fast", bracket: 4, url: "https://archidekt.com/decks/12721698/selvala_how_to_big_mana_fast" \},\
+            \{ name: "Mishra, Eminent One", bracket: 3, url: "https://archidekt.com/decks/4834917/mishra_eminent_one" \},\
+            \{ name: "Emerging Eldrazi", bracket: 2, url: "https://archidekt.com/decks/16157808/emerging_eldrazi" \},\
+            \{ name: "Caesar, Sac Tokens", bracket: 2, url: "https://archidekt.com/decks/12721818/caesar_sac_tokens" \},\
+            \{ name: "Edric, Turn Ball", bracket: 4, url: "https://archidekt.com/decks/12723622/edric_turn_ball" \},\
+            \{ name: "Raffine, Connive Reanimator", bracket: 2, url: "https://archidekt.com/decks/12724320/raffine_connive_reanimator" \},\
+            \{ name: "Neheb's Barbeque", bracket: 3, url: "https://archidekt.com/decks/12721529/nehebs_barbeque" \},\
+            \{ name: "Niko, Flicker", bracket: 3, url: "https://archidekt.com/decks/12877086/niko_flicker" \},\
+            \{ name: "Sliver Queen", bracket: 4, url: "https://archidekt.com/decks/12724082/sliver_queen" \},\
+            \{ name: "Tergrid Torment", bracket: 4, url: "https://archidekt.com/decks/12721904/tergrid_torment" \},\
+            \{ name: "Thrasios & Vial smasher, Big Spells", bracket: 3, url: "https://archidekt.com/decks/12723944/thrasios_vial_smasher_big_spells" \},\
+            \{ name: "Zinnia, Offspring Tokens", bracket: 3, url: "https://archidekt.com/decks/12724426/zinnia_offspring_tokens" \},\
+            \{ name: "Enchanted Harvest", bracket: 3, url: "https://archidekt.com/decks/12724382/enchanted_harvest" \},\
+            \{ name: "Baral Polymorph", bracket: 3, url: "https://archidekt.com/decks/12723766/baral_polymorph" \},\
+            \{ name: "Competitive Pako and Haldan [no bans]", bracket: 4, url: "https://archidekt.com/decks/12722429/competitive_pako_and_haldan_no_bans" \},\
+            \{ name: "Raggadragga Stompy Dorks", bracket: 3, url: "https://archidekt.com/decks/12722626/raggadragga_stompy_dorks" \},\
+            \{ name: "Xenagos and his hitmen", bracket: 3, url: "https://archidekt.com/decks/12723709/xenagos_and_his_hitmen" \},\
+            \{ name: "Cascading Slivers", bracket: 2, url: "https://archidekt.com/decks/12722171/cascading_slivers" \},\
+            \{ name: "Boros Equipment [no bans]", bracket: 4, url: "https://archidekt.com/decks/12721379/boros_equipment_no_bans" \},\
+            \{ name: "Jodah's League of Legends", bracket: 4, url: "https://archidekt.com/decks/12722317/jodahs_league_of_legends" \},\
+            \{ name: "Reanimated Delirium", bracket: 2, url: "https://archidekt.com/decks/12721767/reanimated_delirium" \}\
+        ];\
+\
+        let selectedBracket = '';\
+\
+        // Calculate deck counts by bracket\
+        const decksByBracket = \{\
+            1: decks.filter(d => d.bracket === 1).length,\
+            2: decks.filter(d => d.bracket === 2).length,\
+            3: decks.filter(d => d.bracket === 3).length,\
+            4: decks.filter(d => d.bracket === 4).length,\
+        \};\
+\
+        // Initialize the UI\
+        function init() \{\
+            renderBrackets();\
+            renderStats();\
+        \}\
+\
+        function renderBrackets() \{\
+            const grid = document.getElementById('bracketGrid');\
+            [1, 2, 3, 4].forEach(bracket => \{\
+                const btn = document.createElement('button');\
+                btn.className = 'bracket-btn';\
+                btn.onclick = () => selectBracket(bracket);\
+                btn.innerHTML = `\
+                    <div class="bracket-number">$\{bracket\}</div>\
+                    <div class="bracket-count">$\{decksByBracket[bracket]\} decks</div>\
+                `;\
+                btn.id = `bracket-$\{bracket\}`;\
+                grid.appendChild(btn);\
+            \});\
+        \}\
+\
+        function renderStats() \{\
+            const statsGrid = document.getElementById('statsGrid');\
+            [1, 2, 3, 4].forEach(bracket => \{\
+                const stat = document.createElement('div');\
+                stat.innerHTML = `\
+                    <div class="stat-number">$\{decksByBracket[bracket]\}</div>\
+                    <div class="stat-label">Bracket $\{bracket\}</div>\
+                `;\
+                statsGrid.appendChild(stat);\
+            \});\
+            \
+            document.getElementById('statsTotal').innerHTML = \
+                `<span style="font-weight: 600;">Total:</span> $\{decks.length\} decks`;\
+        \}\
+\
+        function selectBracket(bracket) \{\
+            selectedBracket = bracket;\
+            [1, 2, 3, 4].forEach(b => \{\
+                const btn = document.getElementById(`bracket-$\{b\}`);\
+                if (b === bracket) \{\
+                    btn.classList.add('selected');\
+                \} else \{\
+                    btn.classList.remove('selected');\
+                \}\
+            \});\
+        \}\
+\
+        function getRandomDeck() \{\
+            if (!selectedBracket) \{\
+                alert('Please select a bracket first!');\
+                return;\
+            \}\
+\
+            const filteredDecks = decks.filter(deck => deck.bracket === selectedBracket);\
+            \
+            const resultDiv = document.getElementById('result');\
+            \
+            if (filteredDecks.length === 0) \{\
+                resultDiv.innerHTML = `\
+                    <div class="result-card">\
+                        <p class="no-result">No decks found for this bracket</p>\
+                    </div>\
+                `;\
+                return;\
+            \}\
+\
+            const randomIndex = Math.floor(Math.random() * filteredDecks.length);\
+            const randomDeck = filteredDecks[randomIndex];\
+\
+            resultDiv.innerHTML = `\
+                <div class="result-card">\
+                    <div class="result-header">\
+                        <h2 class="deck-name">$\{randomDeck.name\}</h2>\
+                        <span class="bracket-badge">Bracket $\{randomDeck.bracket\}</span>\
+                    </div>\
+                    <a href="$\{randomDeck.url\}" target="_blank" rel="noopener noreferrer" class="deck-link">\
+                        View on Archidekt \uc0\u8594 \
+                    </a>\
+                </div>\
+            `;\
+        \}\
+\
+        // Initialize on page load\
+        init();\
+    </script>\
+</body>\
+</html>}
