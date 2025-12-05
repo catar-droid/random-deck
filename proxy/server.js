@@ -41,25 +41,47 @@ app.get('/api/folders/:folderId', async (req, res) => {
     }
     const html = await response.text();
     
-    // Extract the Next.js data
-    const scriptMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/s);
+    // 1. Locate the __NEXT_DATA__ script tag
+    // The Next.js data is always contained in a script tag with this specific ID.
+    const scriptTag = $('#__NEXT_DATA__');
     
-    if (!scriptMatch) {
-      return res.status(500).json({ error: 'Could not find deck data in folder page' });
+    if (scriptTag.length === 0) {
+      return res.status(500).json({ error: 'Could not find NEXT_DATA script tag' });
     }
 
-    const jsonData = JSON.parse(scriptMatch[1]);
-    const userDecks = jsonData?.props?.pageProps?.user?.decks;
+    // 2. Extract and Parse the JSON
+    const dataText = scriptTag.html();
+    const nextData = JSON.parse(dataText);
 
+    if (nextData.length === 0) {
+      return res.status(500).json({ error: 'Could not parse the nextData object' });
+    }
+    
+    // 3. Extract the required deck information
+    // The deck list is typically nested under props.pageProps.
+    const userDecks = nextData?.props?.pageProps?.folder?.decks || [];
+    
     if (!userDecks || !Array.isArray(userDecks)) {
       return res.status(500).json({ error: 'Invalid deck data structure' });
     }
 
     // Return the decks array
-    res.json({ decks: userDecks });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+ //   res.json({ decks: userDecks });
+ // } catch (err) {
+ //   res.status(500).json({ error: err.message });
+ // }
+
+  const deckInfo = userDecks.map(deck => ({
+      name: deck.name,
+      // The EDH/Commander data might be under 'format', 'edhBracket', or another field.
+      // You'll need to inspect the full 'nextData' structure to find the exact path for 'edhBracket'.
+      // For this example, we'll try to guess a common field like 'format' or 'details'.
+      edhBracket: deck.format || deck.details?.bracketNumber || 'Not Found'
+    }));
+
+    return deckInfo;
+
+  
 });
 
 const PORT = process.env.PORT || 3000;
