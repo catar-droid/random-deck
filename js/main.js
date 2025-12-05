@@ -7,7 +7,6 @@
 import { 
     playerFolderIds, 
     fetchPlayerDecksFromFolder, 
-    //fetchDeckDetails,
     organizeDecksByBracket, 
     selectRandomDeck 
 } from './api.js';
@@ -146,6 +145,10 @@ async function displayDeck(deck) {
         <div class="result-card">
             <div class="result-header">
                 <h2 class="deck-name">${escapeHTML(deck.name)}</h2>
+                <div class="deck-views">
+                    <span class="views-label">Views:</span>
+                    <span class="views-count">${deck.viewCount}</span>
+                </div>
                 <span class="bracket-badge">Bracket ${deck.bracket}</span>
             </div>
             ${colorBarHTML}
