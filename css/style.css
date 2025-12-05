@@ -137,17 +137,15 @@ option {
 }
 
 /* Styling for the inline Views count */
-.deck-views-inline {
+.deck-views-aligned {
     font-size: 12pt;
-    color: ##5A5A5A;
+    color: #5A5A8C;
     
     /* Layout and positioning */
-    display: inline-block; /* Allows side-by-side with H2 */
-    margin-left: 10px; /* Space between the Deck Name and Views */
+    float:left;
+    padding: 30px 0;
     font-weight: normal; /* Ensures it doesn't inherit bold from H2 */
-    vertical-align: bottom; /* Align with the top of the H2 text */
-    /* Optional: reduce line-height if needed */
-    /* line-height: 1.2; */
+    vertical-align: bottom; /* Align with the bottom of the H2 text */
 }
 
 @keyframes fadeIn {
