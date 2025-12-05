@@ -145,10 +145,11 @@ async function displayDeck(deck) {
         <div class="result-card">
             <div class="result-header">
                 <h2 class="deck-name">${escapeHTML(deck.name)}</h2>
-                <span class="deck-views-inline">
-                    Views: ${deck.viewCount}
-                </span>
                 <span class="bracket-badge">Bracket ${deck.bracket}</span>
+                
+                <div class="deck-views-aligned">
+                    Views: ${deck.viewCount}
+                </div>
             </div>
             ${colorBarHTML}
             <a href="${deck.url}" target="_blank" rel="noopener noreferrer" class="deck-link">
