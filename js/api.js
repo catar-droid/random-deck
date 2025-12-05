@@ -47,7 +47,9 @@ export async function fetchPlayerDecksFromFolder(folderId) {
                 name: deck.name,
                 // Map the server's edhBracket to the client's expected 'bracket' key
                 bracket: deck.edhBracket,
-                url: `https://archidekt.com/decks/${deck.id}`
+                url: `https://archidekt.com/decks/${deck.id}`,
+                // Store color data if available
+                colors: deck.colors || null
             }));
 
     } catch (error) {
