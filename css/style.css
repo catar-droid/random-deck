@@ -162,6 +162,19 @@ option {
     flex: 1;
 }
 
+.deck-views-top-right {
+    /* Layout */
+    display: block; /* Ensures it takes up its own line */
+    text-align: right; /* Aligns the text to the right edge of its container */
+    padding: 0 10px 5px 10px; /* Adjust padding to align with the rest of the card content. 
+                                  The 5px bottom padding creates space above the color bar. */
+    
+    /* Specified styles */
+    font-size: 12pt;
+    color: #5A5A8C;
+    margin: 0; 
+}
+
 .bracket-badge {
     background: #a855f7;
     color: white;
