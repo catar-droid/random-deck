@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commander Deck Picker</title>
+
+    <link rel="stylesheet" href="css/style.css"> 
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Commander Deck Picker</h1>
+            <p class="subtitle">Select a player and bracket to get a random deck</p>
+
+            <div class="player-select-container">
+                <label class="section-title">Choose Player:</label>
+                <select id="playerSelect">
+                    <option value="">-- Select a Player --</option>
+                    <option value="catar">Tilman</option>
+                    <option value="timmsen">Tim</option>
+                    <option value="failbob">Tobi</option>
+                </select>
+            </div>
+
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p style="margin-top: 1rem;">Loading decks...</p>
+            </div>
+
+            <div id="error" class="error hidden"></div>
+
+            <div id="bracketSection" class="hidden">
+                <label class="section-title">Choose Bracket:</label>
+                <div class="bracket-grid" id="bracketGrid"></div>
+            </div>
+
+            <div id="result"></div>
+
+            <div id="statsCard" class="stats-card hidden">
+                <h3 class="stats-title">Deck Statistics:</h3>
+                <div class="stats-grid" id="statsGrid"></div>
+                <div class="stats-total" id="statsTotal"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
