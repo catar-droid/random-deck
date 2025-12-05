@@ -136,16 +136,18 @@ option {
     animation: fadeIn 0.3s ease-in;
 }
 
-/* Styling for the inline Views count */
-.deck-views-aligned {
+/* Styling for the Views count, positioned above the color bar and right-aligned */
+.deck-views-top-right {
+    /* Layout */
+    display: block; /* Ensures it takes up its own line */
+    text-align: right; /* Aligns the text to the right edge of its container */
+    padding: 0 10px 5px 10px; /* Adjust padding to align with the rest of the card content. 
+                                  The 5px bottom padding creates space above the color bar. */
+    
+    /* Specified styles */
     font-size: 12pt;
     color: #5A5A8C;
-    
-    /* Layout and positioning */
-    float:left;
-    padding: 30px 0;
-    font-weight: normal; /* Ensures it doesn't inherit bold from H2 */
-    vertical-align: bottom; /* Align with the bottom of the H2 text */
+    margin: 0; 
 }
 
 @keyframes fadeIn {
