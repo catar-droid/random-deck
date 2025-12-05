@@ -1,187 +1,492 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Commander Deck Picker</title>
-<style>
-/* Minimal styling; reuse your existing styles if desired */
-body { font-family: sans-serif; background: #1e1b4b; color: white; padding: 2rem; }
-.container { max-width: 800px; margin: auto; }
-h1 { text-align: center; margin-bottom: 1rem; }
-select, button { padding: 0.5rem 1rem; margin: 0.5rem 0; }
-.bracket-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
-.bracket-btn { flex: 1 0 100px; cursor: pointer; border-radius: 0.5rem; border: none; background: #4f46e5; color: white; font-weight: bold; }
-.result-card { margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 0.5rem; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commander Deck Picker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #1e3a8a 50%, #312e81 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: #d8b4fe;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .player-select-container {
+            margin-bottom: 2rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        select:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #a855f7;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        option {
+            background: #1e3a8a;
+            color: white;
+        }
+
+        .bracket-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .bracket-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .bracket-btn {
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            font-size: 1.125rem;
+            cursor: pointer;
+            border: none;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .bracket-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .bracket-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .bracket-number {
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .bracket-count {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .result-card {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .deck-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            flex: 1;
+        }
+
+        .bracket-badge {
+            background: #a855f7;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .deck-link {
+            color: #d8b4fe;
+            text-decoration: underline;
+            font-size: 0.875rem;
+        }
+
+        .deck-link:hover {
+            color: #e9d5ff;
+        }
+
+        .stats-card {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+
+        .stats-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 0.5rem;
+            text-align: center;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #d8b4fe;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            opacity: 0.75;
+        }
+
+        .stats-total {
+            text-align: center;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            padding: 2rem;
+            font-size: 1.125rem;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-<h1>Commander Deck Picker</h1>
+    <div class="container">
+        <div class="card">
+            <h1>Commander Deck Picker</h1>
+            <p class="subtitle">Select a player and bracket to get a random deck</p>
 
-<!-- Player Selection -->
-<label>Choose Player:</label>
-<select id="playerSelect">
-  <option value="">-- Select a Player --</option>
-  <option value="catar">Tilman</option>
-  <option value="timmsen">Tim</option>
-  <option value="failbob">Tobi</option>
-</select>
+            <!-- Player Selection -->
+            <div class="player-select-container">
+                <label class="section-title">Choose Player:</label>
+                <select id="playerSelect">
+                    <option value="">-- Select a Player --</option>
+                    <option value="catar">Tilman</option>
+                    <option value="timmsen">Tim</option>
+                    <option value="failbob">Tobi</option>
+                </select>
+            </div>
 
-<!-- Loading & Error -->
-<div id="loading" class="hidden">Loading decks...</div>
-<div id="error" class="hidden" style="color: #f87171;"></div>
+            <!-- Loading Indicator -->
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p style="margin-top: 1rem;">Loading decks...</p>
+            </div>
 
-<!-- Bracket Buttons -->
-<div id="bracketGrid" class="bracket-grid hidden"></div>
+            <!-- Error Message -->
+            <div id="error" class="error hidden"></div>
 
-<!-- Result -->
-<div id="result"></div>
-</div>
+            <!-- Bracket Selection -->
+            <div id="bracketSection" class="hidden">
+                <label class="section-title">Choose Bracket:</label>
+                <div class="bracket-grid" id="bracketGrid"></div>
+            </div>
 
-<script>
-// =========================
-// Configuration
-// =========================
-const proxyUrl = 'https://random-deck.onrender.com/api/decks/'; // <- Replace with your proxy URL
+            <!-- Result Display -->
+            <div id="result"></div>
 
-const playerDeckIds = {
-  catar: [17452615, 12724013, 12721698, 4834917, 16157808, 12721818, 12723622, 12724320, 12721529, 12877086, 12724082, 12721904, 12723944, 12724426, 12724382, 12723766, 12722429, 12722626, 12723709, 12722171, 12721379, 12722317, 12721767],
-  timmsen: [15823364, 7217237, 7630552, 13137118, 9306087, 4897549, 15500438, 12846990, 10956256],
-  failbob: [17685060, 14797112, 14805167, 17580409, 13194956]
-};
-
-// =========================
-// State
-// =========================
-let currentDecks = [];
-let decksByBracket = {};
-
-// =========================
-// DOM Elements
-// =========================
-const playerSelect = document.getElementById('playerSelect');
-const loadingDiv = document.getElementById('loading');
-const errorDiv = document.getElementById('error');
-const bracketGrid = document.getElementById('bracketGrid');
-const resultDiv = document.getElementById('result');
-
-// =========================
-// Event Listeners
-// =========================
-playerSelect.addEventListener('change', handlePlayerSelection);
-
-// =========================
-// Functions
-// =========================
-
-async function handlePlayerSelection() {
-  const username = playerSelect.value;
-  resetUI();
-  if (!username) return;
-  await loadPlayerDecks(username);
-}
-
-async function loadPlayerDecks(username) {
-  showLoading();
-  hideError();
-
-  try {
-    const deckIds = playerDeckIds[username];
-    if (!deckIds || deckIds.length === 0) throw new Error('No decks found for this player');
-
-    const deckPromises = deckIds.map(id => fetchDeckViaProxy(id));
-    const decks = await Promise.all(deckPromises);
-
-    currentDecks = decks.filter(deck => deck !== null);
-    if (currentDecks.length === 0) throw new Error('Failed to load any decks.');
-
-    organizeDecksByBracket();
-    renderBrackets();
-    hideLoading();
-  } catch (err) {
-    hideLoading();
-    showError(err.message);
-    console.error(err);
-  }
-}
-
-async function fetchDeckViaProxy(deckId) {
-  try {
-    const res = await fetch(`${proxyUrl}${deckId}`);
-    if (!res.ok) throw new Error(`Failed to fetch deck ${deckId}`);
-    const data = await res.json();
-    return {
-      id: data.id,
-      name: data.name,
-      bracket: data.edhBracket ?? 'Unknown',
-      url: `https://archidekt.com/decks/${data.id}`
-    };
-  } catch (err) {
-    console.warn(err);
-    return null;
-  }
-}
-
-function organizeDecksByBracket() {
-  decksByBracket = {};
-  currentDecks.forEach(deck => {
-    const bracket = deck.bracket;
-    if (!decksByBracket[bracket]) decksByBracket[bracket] = [];
-    decksByBracket[bracket].push(deck);
-  });
-}
-
-function renderBrackets() {
-  bracketGrid.innerHTML = '';
-  bracketGrid.classList.remove('hidden');
-
-  Object.keys(decksByBracket).sort((a, b) => a - b).forEach(bracket => {
-    const btn = document.createElement('button');
-    btn.className = 'bracket-btn';
-    btn.textContent = `Bracket ${bracket} (${decksByBracket[bracket].length})`;
-    btn.addEventListener('click', () => selectRandomDeck(bracket));
-    bracketGrid.appendChild(btn);
-  });
-}
-
-function selectRandomDeck(bracket) {
-  const decks = decksByBracket[bracket];
-  if (!decks || decks.length === 0) {
-    showError('No decks available in this bracket');
-    return;
-  }
-  const deck = decks[Math.floor(Math.random() * decks.length)];
-  displayDeck(deck);
-}
-
-function displayDeck(deck) {
-  resultDiv.innerHTML = `
-    <div class="result-card">
-      <h2>${deck.name}</h2>
-      <p>Bracket: ${deck.bracket}</p>
-      <a href="${deck.url}" target="_blank">View on Archidekt →</a>
+            <!-- Statistics -->
+            <div id="statsCard" class="stats-card hidden">
+                <h3 class="stats-title">Deck Statistics:</h3>
+                <div class="stats-grid" id="statsGrid"></div>
+                <div class="stats-total" id="statsTotal"></div>
+            </div>
+        </div>
     </div>
-  `;
-}
 
-// =========================
-// UI Helpers
-// =========================
-function resetUI() {
-  currentDecks = [];
-  decksByBracket = {};
-  bracketGrid.innerHTML = '';
-  bracketGrid.classList.add('hidden');
-  resultDiv.innerHTML = '';
-  hideError();
-}
+    <script>
+        // =========================
+        // Configuration
+        // =========================
+        const proxyUrl = 'https://random-deck.onrender.com/api/decks/';
 
-function showLoading() { loadingDiv.classList.remove('hidden'); }
-function hideLoading() { loadingDiv.classList.add('hidden'); }
-function showError(msg) { errorDiv.textContent = msg; errorDiv.classList.remove('hidden'); }
-function hideError() { errorDiv.classList.add('hidden'); }
+        const playerDeckIds = {
+            catar: [17452615, 12724013, 12721698, 4834917, 16157808, 12721818, 12723622, 12724320, 12721529, 12877086, 12724082, 12721904, 12723944, 12724426, 12724382, 12723766, 12722429, 12722626, 12723709, 12722171, 12721379, 12722317, 12721767],
+            timmsen: [15823364, 7217237, 7630552, 13137118, 9306087, 4897549, 15500438, 12846990, 10956256],
+            failbob: [17685060, 14797112, 14805167, 17580409, 13194956]
+        };
 
-</script>
+        // =========================
+        // State
+        // =========================
+        let currentDecks = [];
+        let decksByBracket = {};
+
+        // =========================
+        // DOM Elements
+        // =========================
+        const playerSelect = document.getElementById('playerSelect');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const bracketSection = document.getElementById('bracketSection');
+        const bracketGrid = document.getElementById('bracketGrid');
+        const resultDiv = document.getElementById('result');
+        const statsCard = document.getElementById('statsCard');
+        const statsGrid = document.getElementById('statsGrid');
+        const statsTotal = document.getElementById('statsTotal');
+
+        // =========================
+        // Event Listeners
+        // =========================
+        playerSelect.addEventListener('change', handlePlayerSelection);
+
+        // =========================
+        // Functions
+        // =========================
+
+        async function handlePlayerSelection() {
+            const username = playerSelect.value;
+            resetUI();
+            if (!username) return;
+            await loadPlayerDecks(username);
+        }
+
+        async function loadPlayerDecks(username) {
+            showLoading();
+            hideError();
+
+            try {
+                const deckIds = playerDeckIds[username];
+                if (!deckIds || deckIds.length === 0) throw new Error('No decks found for this player');
+
+                const deckPromises = deckIds.map(id => fetchDeckViaProxy(id));
+                const decks = await Promise.all(deckPromises);
+
+                currentDecks = decks.filter(deck => deck !== null);
+                if (currentDecks.length === 0) throw new Error('Failed to load any decks.');
+
+                organizeDecksByBracket();
+                renderBrackets();
+                renderStats();
+                hideLoading();
+            } catch (err) {
+                hideLoading();
+                showError(err.message);
+                console.error(err);
+            }
+        }
+
+        async function fetchDeckViaProxy(deckId) {
+            try {
+                const res = await fetch(`${proxyUrl}${deckId}`);
+                if (!res.ok) throw new Error(`Failed to fetch deck ${deckId}`);
+                const data = await res.json();
+                return {
+                    id: data.id,
+                    name: data.name,
+                    bracket: data.edhBracket ?? 'Unknown',
+                    url: `https://archidekt.com/decks/${data.id}`
+                };
+            } catch (err) {
+                console.warn(err);
+                return null;
+            }
+        }
+
+        function organizeDecksByBracket() {
+            decksByBracket = {};
+            currentDecks.forEach(deck => {
+                const bracket = deck.bracket;
+                if (!decksByBracket[bracket]) decksByBracket[bracket] = [];
+                decksByBracket[bracket].push(deck);
+            });
+        }
+
+        function renderBrackets() {
+            bracketGrid.innerHTML = '';
+            bracketSection.classList.remove('hidden');
+
+            Object.keys(decksByBracket).sort((a, b) => a - b).forEach(bracket => {
+                const btn = document.createElement('button');
+                btn.className = 'bracket-btn';
+                btn.innerHTML = `
+                    <div class="bracket-number">${bracket}</div>
+                    <div class="bracket-count">${decksByBracket[bracket].length} decks</div>
+                `;
+                btn.addEventListener('click', () => selectRandomDeck(bracket));
+                bracketGrid.appendChild(btn);
+            });
+        }
+
+        function selectRandomDeck(bracket) {
+            const decks = decksByBracket[bracket];
+            if (!decks || decks.length === 0) {
+                showError('No decks available in this bracket');
+                return;
+            }
+            const deck = decks[Math.floor(Math.random() * decks.length)];
+            displayDeck(deck);
+        }
+
+        function displayDeck(deck) {
+            resultDiv.innerHTML = `
+                <div class="result-card">
+                    <div class="result-header">
+                        <h2 class="deck-name">${escapeHTML(deck.name)}</h2>
+                        <span class="bracket-badge">Bracket ${deck.bracket}</span>
+                    </div>
+                    <a href="${deck.url}" target="_blank" rel="noopener noreferrer" class="deck-link">
+                        View on Archidekt →
+                    </a>
+                </div>
+            `;
+        }
+
+        function renderStats() {
+            statsGrid.innerHTML = '';
+            statsCard.classList.remove('hidden');
+
+            Object.keys(decksByBracket).sort((a, b) => a - b).forEach(bracket => {
+                const stat = document.createElement('div');
+                stat.innerHTML = `
+                    <div class="stat-number">${decksByBracket[bracket].length}</div>
+                    <div class="stat-label">Bracket ${bracket}</div>
+                `;
+                statsGrid.appendChild(stat);
+            });
+
+            statsTotal.innerHTML = 
+                `<span style="font-weight: 600;">Total:</span> ${currentDecks.length} decks`;
+        }
+
+        // =========================
+        // UI Helpers
+        // =========================
+        function resetUI() {
+            currentDecks = [];
+            decksByBracket = {};
+            bracketGrid.innerHTML = '';
+            bracketSection.classList.add('hidden');
+            resultDiv.innerHTML = '';
+            statsCard.classList.add('hidden');
+            hideError();
+        }
+
+        function showLoading() { loadingDiv.classList.remove('hidden'); }
+        function hideLoading() { loadingDiv.classList.add('hidden'); }
+        function showError(msg) { errorDiv.textContent = msg; errorDiv.classList.remove('hidden'); }
+        function hideError() { errorDiv.classList.add('hidden'); }
+
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+    </script>
 </body>
 </html>
