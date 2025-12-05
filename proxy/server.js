@@ -28,6 +28,8 @@ app.get('/api/decks/:deckId', async (req, res) => {
   }
 });
 
+// ---
+
 /**
  * Proxy endpoint: /api/folders/:folderId
  * Fetches folder page HTML to extract deck list
@@ -41,47 +43,44 @@ app.get('/api/folders/:folderId', async (req, res) => {
     }
     const html = await response.text();
     
-    // 1. Locate the __NEXT_DATA__ script tag
-    // The Next.js data is always contained in a script tag with this specific ID.
-    const scriptTag = $('#__NEXT_DATA__');
+    // NOTE: The Cheerio lines have been removed below. 
+    // You now need to use standard JavaScript string methods (e.g., regex) 
+    // to extract the __NEXT_DATA__ JSON from the `html` string.
     
-    if (scriptTag.length === 0) {
-      return res.status(500).json({ error: 'Could not find NEXT_DATA script tag' });
-    }
+    // 1. Locate and Extract the __NEXT_DATA__ JSON string
+    // This is the functional replacement for Cheerio's $('#__NEXT_DATA__').html()
+    const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]+?)<\/script>/);
 
-    // 2. Extract and Parse the JSON
-    const dataText = scriptTag.html();
+    if (!match || match.length < 2) {
+      return res.status(500).json({ error: 'Could not find or extract NEXT_DATA script content' });
+    }
+    
+    // The JSON string is in the second element of the match array
+    const dataText = match[1].trim(); 
+    
+    // 2. Parse the JSON
     const nextData = JSON.parse(dataText);
 
-    if (nextData.length === 0) {
-      return res.status(500).json({ error: 'Could not parse the nextData object' });
-    }
-    
     // 3. Extract the required deck information
-    // The deck list is typically nested under props.pageProps.
     const userDecks = nextData?.props?.pageProps?.folder?.decks || [];
     
     if (!userDecks || !Array.isArray(userDecks)) {
-      return res.status(500).json({ error: 'Invalid deck data structure' });
+      return res.status(500).json({ error: 'Invalid deck data structure or deck list is empty' });
     }
 
-    // Return the decks array
- //   res.json({ decks: userDecks });
- // } catch (err) {
- //   res.status(500).json({ error: err.message });
- // }
-
-  const deckInfo = userDecks.map(deck => ({
+    const deckInfo = userDecks.map(deck => ({
       name: deck.name,
-      // The EDH/Commander data might be under 'format', 'edhBracket', or another field.
-      // You'll need to inspect the full 'nextData' structure to find the exact path for 'edhBracket'.
-      // For this example, we'll try to guess a common field like 'format' or 'details'.
-      edhBracket: deck.format || deck.details?.bracketNumber || 'Not Found'
+      // handle situation when user didnt provide bracket
+      edhBracket: deck.bracketNumber || 'Not Found'
     }));
 
-    return deckInfo;
+    // 4. Send the result back to the client
+    res.json({ decks: deckInfo });
 
-  
+  } catch (err) { 
+    // Handle parsing errors, network errors, etc.
+    res.status(500).json({ error: `Server-side error: ${err.message}` });
+  } 
 });
 
 const PORT = process.env.PORT || 3000;
