@@ -7,7 +7,7 @@
 import { 
     playerFolderIds, 
     fetchPlayerDecksFromFolder, 
-    fetchDeckDetails,
+    //fetchDeckDetails,
     organizeDecksByBracket, 
     selectRandomDeck 
 } from './api.js';
@@ -138,11 +138,8 @@ async function displayDeck(deck) {
         </div>
     `;
     
-    // Fetch deck details for color information
-    const deckDetails = await fetchDeckDetails(deck.id);
-    
     // Create color bar HTML
-    const colorBarHTML = createColorBar(deckDetails.colors);
+    const colorBarHTML = createColorBar(decks.colors);
     
     // Display complete deck information
     resultDiv.innerHTML = `
