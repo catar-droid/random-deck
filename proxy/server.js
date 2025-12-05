@@ -45,25 +45,24 @@ app.get('/api/folders/:folderId', async (req, res) => {
   try {
     const response = await fetch(`https://archidekt.com/folders/${folderId}`, {
         headers: {
-            // Keep the User-Agent fix
+            // provide user agent information to prevent target server blocking request
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
         }
     });
 
     if (!response.ok) {
-      // 💡 NEW/IMPROVED LOGGING: Log the specific Archidekt status code
+      // Log the specific Archidekt status code
       console.error(`Archidekt fetch failed with status: ${response.status}`);
       return res.status(response.status).json({ error: `Failed to fetch folder from Archidekt: ${response.status}` });
     }
     const html = await response.text();
     
     // 1. Locate and Extract the __NEXT_DATA__ JSON string
-    // This regex is the most likely failure point if the JSON.parse fails.
     const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]+?)<\/script>/);
 
     if (!match || match.length < 2) {
       console.error('Extraction failed: Could not find __NEXT_DATA__ script content.');
-      // 💡 ADDED DIAGNOSTIC: Send the first part of the HTML to the client for inspection
+      // Send the first part of the HTML to the client for inspection
       return res.status(500).json({ 
           error: 'Could not find or extract NEXT_DATA script content.', 
           html_preview: html.substring(0, 500) 
@@ -73,13 +72,12 @@ app.get('/api/folders/:folderId', async (req, res) => {
     const dataText = match[1].trim(); 
     
     // 2. Parse the JSON
-    const nextData = JSON.parse(dataText); // 👈 THIS LINE IS THE MOST LIKELY SOURCE OF A CRASH
+    const nextData = JSON.parse(dataText);
     
     // 3. Extract the required deck information
-    // Current Path: nextData?.props?.pageProps?.folder?.decks
     const userDecks = nextData?.props?.pageProps?.redux?.folders?.rootFolder?.decks || [];
     
-    // 💡 DIAGNOSTIC 3: Check and log the number of decks found
+    // Check and log the number of decks found
     console.log(`Extracted Decks count: ${userDecks.length}`);
 
     if (!userDecks || userDecks.length === 0) {
