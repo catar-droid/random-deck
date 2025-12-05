@@ -77,7 +77,7 @@ app.get('/api/folders/:folderId', async (req, res) => {
     
     // 3. Extract the required deck information
     // Current Path: nextData?.props?.pageProps?.folder?.decks
-    const userDecks = nextData?.props?.pageProps?.redux?.folders?.decks || [];
+    const userDecks = nextData?.props?.pageProps?.redux?.folders?.rootFolder?.decks || [];
     
     // 💡 DIAGNOSTIC 3: Check and log the number of decks found
     console.log(`Extracted Decks count: ${userDecks.length}`);
