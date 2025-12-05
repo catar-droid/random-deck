@@ -420,11 +420,7 @@
                     // We can use the deck.name and deck.edhBracket directly
                     name: deck.name,
                     bracket: deck.edhBracket,
-                    // The deck object returned by the server doesn't contain the full 'id' 
-                    // needed for the link, so we'll need to re-fetch the deck ID 
-                    // for the URL if the server stripped it, OR, 
-                    // if the server returned the ID, we use that.
-                    // Assuming the server response includes 'id' for the link:
+                    // the server response includes 'id' for the link:
                     url: `https://archidekt.com/decks/${deck.id}` 
                 }));
 
