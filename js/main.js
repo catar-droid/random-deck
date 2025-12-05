@@ -139,7 +139,7 @@ async function displayDeck(deck) {
     `;
     
     // Create color bar HTML
-    const colorBarHTML = createColorBar(decks.colors);
+    const colorBarHTML = createColorBar(deck.colors);
     
     // Display complete deck information
     resultDiv.innerHTML = `
