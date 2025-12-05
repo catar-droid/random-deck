@@ -93,7 +93,7 @@ app.get('/api/folders/:folderId', async (req, res) => {
       // handle situation when user didnt provide bracket
       edhBracket: deck.edhBracket || 'Not Found',
       colors: deck.colors || null,
-      views: deck.viewCount
+      viewCount: deck.viewCount
     }));
 
     // 4. Send the result back to the client
