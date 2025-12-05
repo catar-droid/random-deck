@@ -123,7 +123,7 @@ function renderStats() {
 }
 
 async function displayDeck(deck) {
-    // Show loading state
+    // Show loading state (unchanged for brevity)
     resultDiv.innerHTML = `
         <div class="result-card">
             <div class="result-header">
@@ -137,7 +137,7 @@ async function displayDeck(deck) {
         </div>
     `;
     
-    // Create color bar HTML
+    // Create color bar HTML (unchanged for brevity)
     const colorBarHTML = createColorBar(deck.colors);
     
     // Display complete deck information
@@ -145,10 +145,9 @@ async function displayDeck(deck) {
         <div class="result-card">
             <div class="result-header">
                 <h2 class="deck-name">${escapeHTML(deck.name)}</h2>
-                <div class="deck-views">
-                    <span class="views-label">Views:</span>
-                    <span class="views-count">${deck.viewCount}</span>
-                </div>
+                <span class="deck-views-inline">
+                    Views: ${deck.viewCount}
+                </span>
                 <span class="bracket-badge">Bracket ${deck.bracket}</span>
             </div>
             ${colorBarHTML}
