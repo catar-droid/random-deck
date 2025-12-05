@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="manifest" href="manifest.json">
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="theme-color" content="#ffffff">
+                    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Commander Deck Picker</title>
@@ -53,6 +62,39 @@
             margin-bottom: 1rem;
         }
 
+        .player-select-container {
+            margin-bottom: 2rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        select:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #a855f7;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        option {
+            background: #1e3a8a;
+            color: white;
+        }
+
         .bracket-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -84,10 +126,10 @@
             transform: scale(1.05);
         }
 
-        .bracket-btn.selected {
-            background: #a855f7;
-            box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.4);
-            transform: scale(1.05);
+        .bracket-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .bracket-number {
@@ -98,29 +140,6 @@
         .bracket-count {
             font-size: 0.75rem;
             opacity: 0.8;
-        }
-
-        .shuffle-btn {
-            width: 100%;
-            background: linear-gradient(to right, #a855f7, #ec4899);
-            color: white;
-            font-weight: bold;
-            padding: 1rem 2rem;
-            border-radius: 0.75rem;
-            border: none;
-            cursor: pointer;
-            font-size: 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.75rem;
-            transition: all 0.2s;
-            box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.4);
-        }
-
-        .shuffle-btn:hover {
-            background: linear-gradient(to right, #9333ea, #db2777);
-            transform: scale(1.05);
         }
 
         .result-card {
@@ -194,7 +213,7 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
             gap: 0.5rem;
             text-align: center;
             color: white;
@@ -219,15 +238,39 @@
             color: white;
         }
 
-        .no-result {
+        .loading {
             text-align: center;
             color: white;
+            padding: 2rem;
             font-size: 1.125rem;
         }
 
-        svg {
-            display: inline-block;
-            vertical-align: middle;
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -235,27 +278,39 @@
     <div class="container">
         <div class="card">
             <h1>Commander Deck Picker</h1>
-            <p class="subtitle">Select a bracket and get a random deck</p>
+            <p class="subtitle">Select a player and bracket to get a random deck</p>
 
-            <div>
+            <!-- Player Selection -->
+            <div class="player-select-container">
+                <label class="section-title">Choose Player:</label>
+                <select id="playerSelect">
+                    <option value="">-- Select a Player --</option>
+                    <option value="catar">Tilman</option>
+                    <option value="timmsen">Tim</option>
+                    <option value="failbob">Tobi</option>
+                </select>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="loading hidden">
+                <div class="spinner"></div>
+                <p style="margin-top: 1rem;">Loading decks...</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error" class="error hidden"></div>
+
+            <!-- Bracket Selection -->
+            <div id="bracketSection" class="hidden">
                 <label class="section-title">Choose Bracket:</label>
                 <div class="bracket-grid" id="bracketGrid"></div>
             </div>
 
-            <button class="shuffle-btn" onclick="getRandomDeck()">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="16 3 21 3 21 8"></polyline>
-                    <line x1="4" y1="20" x2="21" y2="3"></line>
-                    <polyline points="21 16 21 21 16 21"></polyline>
-                    <line x1="15" y1="15" x2="21" y2="21"></line>
-                    <line x1="4" y1="4" x2="9" y2="9"></line>
-                </svg>
-                Get Random Deck
-            </button>
-
+            <!-- Result Display -->
             <div id="result"></div>
 
-            <div class="stats-card">
+            <!-- Statistics -->
+            <div id="statsCard" class="stats-card hidden">
                 <h3 class="stats-title">Deck Statistics:</h3>
                 <div class="stats-grid" id="statsGrid"></div>
                 <div class="stats-total" id="statsTotal"></div>
@@ -264,128 +319,209 @@
     </div>
 
     <script>
-        // Deck data with correct brackets and URLs
-        const decks = [
-            { name: "Kaalia, Cheat in Play", bracket: 4, url: "https://archidekt.com/decks/12724013/kaalia_cheat_in_play" },
-            { name: "Indominus Rex Keyword Soup", bracket: 3, url: "https://archidekt.com/decks/17452615/indominus_rex_keyword_soup"},
-            { name: "Selvala, How to Big Mana Fast", bracket: 4, url: "https://archidekt.com/decks/12721698/selvala_how_to_big_mana_fast" },
-            { name: "Mishra, Eminent One", bracket: 3, url: "https://archidekt.com/decks/4834917/mishra_eminent_one" },
-            { name: "Emerging Eldrazi", bracket: 2, url: "https://archidekt.com/decks/16157808/emerging_eldrazi" },
-            { name: "Caesar, Sac Tokens", bracket: 2, url: "https://archidekt.com/decks/12721818/caesar_sac_tokens" },
-            { name: "Edric, Turn Ball", bracket: 4, url: "https://archidekt.com/decks/12723622/edric_turn_ball" },
-            { name: "Raffine, Connive Reanimator", bracket: 2, url: "https://archidekt.com/decks/12724320/raffine_connive_reanimator" },
-            { name: "Neheb's Barbeque", bracket: 3, url: "https://archidekt.com/decks/12721529/nehebs_barbeque" },
-            { name: "Niko, Flicker", bracket: 3, url: "https://archidekt.com/decks/12877086/niko_flicker" },
-            { name: "Sliver Queen", bracket: 4, url: "https://archidekt.com/decks/12724082/sliver_queen" },
-            { name: "Tergrid Torment", bracket: 4, url: "https://archidekt.com/decks/12721904/tergrid_torment" },
-            { name: "Thrasios & Vial smasher, Big Spells", bracket: 3, url: "https://archidekt.com/decks/12723944/thrasios_vial_smasher_big_spells" },
-            { name: "Zinnia, Offspring Tokens", bracket: 3, url: "https://archidekt.com/decks/12724426/zinnia_offspring_tokens" },
-            { name: "Enchanted Harvest", bracket: 3, url: "https://archidekt.com/decks/12724382/enchanted_harvest" },
-            { name: "Baral Polymorph", bracket: 3, url: "https://archidekt.com/decks/12723766/baral_polymorph" },
-            { name: "Competitive Pako and Haldan [no bans]", bracket: 4, url: "https://archidekt.com/decks/12722429/competitive_pako_and_haldan_no_bans" },
-            { name: "Raggadragga Stompy Dorks", bracket: 3, url: "https://archidekt.com/decks/12722626/raggadragga_stompy_dorks" },
-            { name: "Xenagos and his hitmen", bracket: 3, url: "https://archidekt.com/decks/12723709/xenagos_and_his_hitmen" },
-            { name: "Cascading Slivers", bracket: 2, url: "https://archidekt.com/decks/12722171/cascading_slivers" },
-            { name: "Boros Equipment [no bans]", bracket: 4, url: "https://archidekt.com/decks/12721379/boros_equipment_no_bans" },
-            { name: "Jodah's League of Legends", bracket: 4, url: "https://archidekt.com/decks/12722317/jodahs_league_of_legends" },
-            { name: "Reanimated Delirium", bracket: 2, url: "https://archidekt.com/decks/12721767/reanimated_delirium" }
-        ];
+        // =========================
+        // Configuration
+        // =========================
+        const proxyUrl = 'https://random-deck.onrender.com';
 
-        let selectedBracket = '';
-
-        // Calculate deck counts by bracket
-        const decksByBracket = {
-            1: decks.filter(d => d.bracket === 1).length,
-            2: decks.filter(d => d.bracket === 2).length,
-            3: decks.filter(d => d.bracket === 3).length,
-            4: decks.filter(d => d.bracket === 4).length,
+        const playerFolderIds = {
+            catar: '397706',
+            timmsen: '966685',
+            failbob: '966113'
         };
 
-        // Initialize the UI
-        function init() {
-            renderBrackets();
-            renderStats();
+        // =========================
+        // State
+        // =========================
+        let currentDecks = [];
+        let decksByBracket = {};
+
+        // =========================
+        // DOM Elements
+        // =========================
+        const playerSelect = document.getElementById('playerSelect');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        const bracketSection = document.getElementById('bracketSection');
+        const bracketGrid = document.getElementById('bracketGrid');
+        const resultDiv = document.getElementById('result');
+        const statsCard = document.getElementById('statsCard');
+        const statsGrid = document.getElementById('statsGrid');
+        const statsTotal = document.getElementById('statsTotal');
+
+        // =========================
+        // Event Listeners
+        // =========================
+        playerSelect.addEventListener('change', handlePlayerSelection);
+
+        // =========================
+        // Functions
+        // =========================
+
+        async function handlePlayerSelection() {
+            const username = playerSelect.value;
+            resetUI();
+            if (!username) return;
+            await loadPlayerDecks(username);
         }
+
+        async function loadPlayerDecks(username) {
+            showLoading();
+            hideError();
+
+            try {
+                const folderId = playerFolderIds[username];
+                if (!folderId) throw new Error('No folder ID found for this player');
+
+                // Fetch the player's folder decks via our proxy
+                const decks = await fetchPlayerDecksFromFolder(folderId);
+
+                if (decks.length === 0) {
+                    throw new Error('No decks found for this player');
+                }
+
+                currentDecks = decks;
+                organizeDecksByBracket();
+                renderBrackets();
+                renderStats();
+                hideLoading();
+            } catch (err) {
+                hideLoading();
+                showError(`Error loading decks: ${err.message}`);
+                console.error(err);
+            }
+        }
+
+        /**
+     * Fetches player's deck list from their Archidekt folder via our proxy
+     */
+    async function fetchPlayerDecksFromFolder(folderId) {
+        try {
+            const response = await fetch(`${proxyUrl}/api/folders/${folderId}`);
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch folder: ${response.status}`);
+            }
+
+            const data = await response.json();
+            const userDecks = data.decks;
+
+            if (!userDecks || !Array.isArray(userDecks)) {
+                throw new Error('Invalid deck data structure');
+            }
+
+            // 💡 FIX: Simplify the return mapping.
+            // The server already provided 'name' and 'edhBracket' (as 'bracket').
+            // We only need to compute the 'url' here.
+
+            return userDecks
+                .filter(deck => deck.edhBracket !== 'Not Found' && deck.edhBracket != null) // Keep the filter for valid brackets
+                .map(deck => ({
+                    // We can use the deck.name and deck.edhBracket directly
+                    name: deck.name,
+                    bracket: deck.edhBracket,
+                    // the server response includes 'id' for the link:
+                    url: `https://archidekt.com/decks/${deck.id}` 
+                }));
+
+        } catch (error) {
+            console.error('Error fetching folder decks:', error);
+            throw error;
+        }
+    }
+
+    function organizeDecksByBracket() {
+        decksByBracket = {};
+        currentDecks.forEach(deck => {
+            // 💡 FIX: The server is sending 'edhBracket', but your client-side
+            // code maps it to 'bracket' in the previous step. Let's make sure
+            // the object key is 'bracket' for consistency.
+            const bracket = deck.bracket; 
+            if (!decksByBracket[bracket]) decksByBracket[bracket] = [];
+            decksByBracket[bracket].push(deck);
+        });
+    }
 
         function renderBrackets() {
-            const grid = document.getElementById('bracketGrid');
-            [1, 2, 3, 4].forEach(bracket => {
+            bracketGrid.innerHTML = '';
+            bracketSection.classList.remove('hidden');
+
+            Object.keys(decksByBracket).sort((a, b) => a - b).forEach(bracket => {
                 const btn = document.createElement('button');
                 btn.className = 'bracket-btn';
-                btn.onclick = () => selectBracket(bracket);
                 btn.innerHTML = `
                     <div class="bracket-number">${bracket}</div>
-                    <div class="bracket-count">${decksByBracket[bracket]} decks</div>
+                    <div class="bracket-count">${decksByBracket[bracket].length} decks</div>
                 `;
-                btn.id = `bracket-${bracket}`;
-                grid.appendChild(btn);
+                btn.addEventListener('click', () => selectRandomDeck(bracket));
+                bracketGrid.appendChild(btn);
             });
         }
 
-        function renderStats() {
-            const statsGrid = document.getElementById('statsGrid');
-            [1, 2, 3, 4].forEach(bracket => {
-                const stat = document.createElement('div');
-                stat.innerHTML = `
-                    <div class="stat-number">${decksByBracket[bracket]}</div>
-                    <div class="stat-label">Bracket ${bracket}</div>
-                `;
-                statsGrid.appendChild(stat);
-            });
-            
-            document.getElementById('statsTotal').innerHTML = 
-                `<span style="font-weight: 600;">Total:</span> ${decks.length} decks`;
-        }
-
-        function selectBracket(bracket) {
-            selectedBracket = bracket;
-            [1, 2, 3, 4].forEach(b => {
-                const btn = document.getElementById(`bracket-${b}`);
-                if (b === bracket) {
-                    btn.classList.add('selected');
-                } else {
-                    btn.classList.remove('selected');
-                }
-            });
-        }
-
-        function getRandomDeck() {
-            if (!selectedBracket) {
-                alert('Please select a bracket first!');
+        function selectRandomDeck(bracket) {
+            const decks = decksByBracket[bracket];
+            if (!decks || decks.length === 0) {
+                showError('No decks available in this bracket');
                 return;
             }
+            const deck = decks[Math.floor(Math.random() * decks.length)];
+            displayDeck(deck);
+        }
 
-            const filteredDecks = decks.filter(deck => deck.bracket === selectedBracket);
-            
-            const resultDiv = document.getElementById('result');
-            
-            if (filteredDecks.length === 0) {
-                resultDiv.innerHTML = `
-                    <div class="result-card">
-                        <p class="no-result">No decks found for this bracket</p>
-                    </div>
-                `;
-                return;
-            }
-
-            const randomIndex = Math.floor(Math.random() * filteredDecks.length);
-            const randomDeck = filteredDecks[randomIndex];
-
+        function displayDeck(deck) {
             resultDiv.innerHTML = `
                 <div class="result-card">
                     <div class="result-header">
-                        <h2 class="deck-name">${randomDeck.name}</h2>
-                        <span class="bracket-badge">Bracket ${randomDeck.bracket}</span>
+                        <h2 class="deck-name">${escapeHTML(deck.name)}</h2>
+                        <span class="bracket-badge">Bracket ${deck.bracket}</span>
                     </div>
-                    <a href="${randomDeck.url}" target="_blank" rel="noopener noreferrer" class="deck-link">
+                    <a href="${deck.url}" target="_blank" rel="noopener noreferrer" class="deck-link">
                         View on Archidekt →
                     </a>
                 </div>
             `;
         }
 
-        // Initialize on page load
-        init();
+        function renderStats() {
+            statsGrid.innerHTML = '';
+            statsCard.classList.remove('hidden');
+
+            Object.keys(decksByBracket).sort((a, b) => a - b).forEach(bracket => {
+                const stat = document.createElement('div');
+                stat.innerHTML = `
+                    <div class="stat-number">${decksByBracket[bracket].length}</div>
+                    <div class="stat-label">Bracket ${bracket}</div>
+                `;
+                statsGrid.appendChild(stat);
+            });
+
+            statsTotal.innerHTML = 
+                `<span style="font-weight: 600;">Total:</span> ${currentDecks.length} decks`;
+        }
+
+        // =========================
+        // UI Helpers
+        // =========================
+        function resetUI() {
+            currentDecks = [];
+            decksByBracket = {};
+            bracketGrid.innerHTML = '';
+            bracketSection.classList.add('hidden');
+            resultDiv.innerHTML = '';
+            statsCard.classList.add('hidden');
+            hideError();
+        }
+
+        function showLoading() { loadingDiv.classList.remove('hidden'); }
+        function hideLoading() { loadingDiv.classList.add('hidden'); }
+        function showError(msg) { errorDiv.textContent = msg; errorDiv.classList.remove('hidden'); }
+        function hideError() { errorDiv.classList.add('hidden'); }
+
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
     </script>
 </body>
 </html>
