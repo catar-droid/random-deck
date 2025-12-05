@@ -139,13 +139,13 @@ option {
 /* Styling for the inline Views count */
 .deck-views-inline {
     font-size: 12pt;
-    color: #8C8C8C;
+    color: ##5A5A5A;
     
     /* Layout and positioning */
     display: inline-block; /* Allows side-by-side with H2 */
     margin-left: 10px; /* Space between the Deck Name and Views */
     font-weight: normal; /* Ensures it doesn't inherit bold from H2 */
-    vertical-align: top; /* Align with the top of the H2 text */
+    vertical-align: bottom; /* Align with the top of the H2 text */
     /* Optional: reduce line-height if needed */
     /* line-height: 1.2; */
 }
