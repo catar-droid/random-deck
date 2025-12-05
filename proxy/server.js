@@ -75,15 +75,6 @@ app.get('/api/folders/:folderId', async (req, res) => {
     // 2. Parse the JSON
     const nextData = JSON.parse(dataText); // 👈 THIS LINE IS THE MOST LIKELY SOURCE OF A CRASH
     
-    // ... (rest of the extraction and response) ...
-
-  } catch (err) {
-    // 💡 CRITICAL LOGGING: This will catch the JSON.parse error and print it to your server logs
-    console.error(`CRITICAL SERVER ERROR in folder endpoint: ${err.message}`);
-    res.status(500).json({ error: `CRITICAL SERVER ERROR: ${err.message}` });
-  }
-});
-    
     // 3. Extract the required deck information
     // Current Path: nextData?.props?.pageProps?.folder?.decks
     const userDecks = nextData?.props?.pageProps?.folder?.decks || [];
@@ -107,10 +98,11 @@ app.get('/api/folders/:folderId', async (req, res) => {
     // 4. Send the result back to the client
     res.json({ decks: deckInfo });
 
-  } catch (err) { 
-    // Handle parsing errors, network errors, etc.
-    res.status(500).json({ error: `Server-side error: ${err.message}` });
-  } 
+  } catch (err) {
+    // 💡 CRITICAL LOGGING: This will catch the JSON.parse error and print it to your server logs
+    console.error(`CRITICAL SERVER ERROR in folder endpoint: ${err.message}`);
+    res.status(500).json({ error: `CRITICAL SERVER ERROR: ${err.message}` });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
