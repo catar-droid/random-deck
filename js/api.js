@@ -50,7 +50,8 @@ export async function fetchPlayerDecksFromFolder(folderId) {
                 bracket: deck.edhBracket,
                 url: `https://archidekt.com/decks/${deck.id}`,
                 // The colors property is already available from the folder API response
-                colors: deck.colors || null 
+                colors: deck.colors || null,
+                viewCount: deck.viewCount
             }));
 
     } catch (error) {
