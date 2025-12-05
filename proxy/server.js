@@ -43,10 +43,6 @@ app.get('/api/folders/:folderId', async (req, res) => {
     }
     const html = await response.text();
     
-    // NOTE: The Cheerio lines have been removed below. 
-    // You now need to use standard JavaScript string methods (e.g., regex) 
-    // to extract the __NEXT_DATA__ JSON from the `html` string.
-    
     // 1. Locate and Extract the __NEXT_DATA__ JSON string
     // This is the functional replacement for Cheerio's $('#__NEXT_DATA__').html()
     const match = html.match(/<script id="__NEXT_DATA__" type="application\/json">([\s\S]+?)<\/script>/);
