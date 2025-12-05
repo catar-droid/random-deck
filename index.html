@@ -313,12 +313,12 @@
         // =========================
         // Configuration
         // =========================
-        const proxyUrl = 'https://random-deck.onrender.com/api/decks/';
+        const proxyUrl = 'https://random-deck.onrender.com';
 
-        const playerFolderUrls = {
-            catar: 'https://archidekt.com/folders/397706',
-            timmsen: 'https://archidekt.com/folders/966685',
-            failbob: 'https://archidekt.com/folders/966113'
+        const playerFolderIds = {
+            catar: '397706',
+            timmsen: '966685',
+            failbob: '966113'
         };
 
         // =========================
@@ -361,11 +361,11 @@
             hideError();
 
             try {
-                const folderUrl = playerFolderUrls[username];
-                if (!folderUrl) throw new Error('No folder URL found for this player');
+                const folderId = playerFolderIds[username];
+                if (!folderId) throw new Error('No folder ID found for this player');
 
-                // Fetch the player's folder page
-                const decks = await fetchPlayerDecksFromFolder(folderUrl);
+                // Fetch the player's folder decks via our proxy
+                const decks = await fetchPlayerDecksFromFolder(folderId);
 
                 if (decks.length === 0) {
                     throw new Error('No decks found for this player');
@@ -384,33 +384,21 @@
         }
 
         /**
-         * Fetches player's deck list from their Archidekt folder page
+         * Fetches player's deck list from their Archidekt folder via our proxy
          */
-        async function fetchPlayerDecksFromFolder(folderUrl) {
+        async function fetchPlayerDecksFromFolder(folderId) {
             try {
-                // Use CORS proxy to fetch the folder page
-                const proxyFolderUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(folderUrl)}`;
-                const response = await fetch(proxyFolderUrl);
+                const response = await fetch(`${proxyUrl}/api/folders/${folderId}`);
                 
                 if (!response.ok) {
-                    throw new Error(`Failed to fetch folder page: ${response.status}`);
+                    throw new Error(`Failed to fetch folder: ${response.status}`);
                 }
 
                 const data = await response.json();
-                const html = data.contents;
-
-                // Extract the Next.js data from the page
-                const scriptMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/s);
-                
-                if (!scriptMatch) {
-                    throw new Error('Could not find deck data in folder page');
-                }
-
-                const jsonData = JSON.parse(scriptMatch[1]);
-                const userDecks = jsonData.props?.pageProps?.user?.decks;
+                const userDecks = data.decks;
 
                 if (!userDecks || !Array.isArray(userDecks)) {
-                    throw new Error('Invalid deck data structure in folder page');
+                    throw new Error('Invalid deck data structure');
                 }
 
                 // Map to our deck format, filtering out decks without brackets
