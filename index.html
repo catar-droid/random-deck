@@ -393,47 +393,58 @@
         }
 
         /**
-         * Fetches player's deck list from their Archidekt folder via our proxy
-         */
-        async function fetchPlayerDecksFromFolder(folderId) {
-            try {
-                const response = await fetch(`${proxyUrl}/api/folders/${folderId}`);
-                
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch folder: ${response.status}`);
-                }
-
-                const data = await response.json();
-                const userDecks = data.decks;
-
-                if (!userDecks || !Array.isArray(userDecks)) {
-                    throw new Error('Invalid deck data structure');
-                }
-
-                // Map to our deck format, filtering out decks without brackets
-                return userDecks
-                    .filter(deck => deck.edhBracket != null)
-                    .map(deck => ({
-                        id: deck.id,
-                        name: deck.name,
-                        bracket: deck.edhBracket,
-                        url: `https://archidekt.com/decks/${deck.id}`
-                    }));
-
-            } catch (error) {
-                console.error('Error fetching folder decks:', error);
-                throw error;
+     * Fetches player's deck list from their Archidekt folder via our proxy
+     */
+    async function fetchPlayerDecksFromFolder(folderId) {
+        try {
+            const response = await fetch(`${proxyUrl}/api/folders/${folderId}`);
+            
+            if (!response.ok) {
+                throw new Error(`Failed to fetch folder: ${response.status}`);
             }
-        }
 
-        function organizeDecksByBracket() {
-            decksByBracket = {};
-            currentDecks.forEach(deck => {
-                const bracket = deck.bracket;
-                if (!decksByBracket[bracket]) decksByBracket[bracket] = [];
-                decksByBracket[bracket].push(deck);
-            });
+            const data = await response.json();
+            const userDecks = data.decks;
+
+            if (!userDecks || !Array.isArray(userDecks)) {
+                throw new Error('Invalid deck data structure');
+            }
+
+            // 💡 FIX: Simplify the return mapping.
+            // The server already provided 'name' and 'edhBracket' (as 'bracket').
+            // We only need to compute the 'url' here.
+
+            return userDecks
+                .filter(deck => deck.edhBracket !== 'Not Found' && deck.edhBracket != null) // Keep the filter for valid brackets
+                .map(deck => ({
+                    // We can use the deck.name and deck.edhBracket directly
+                    name: deck.name,
+                    bracket: deck.edhBracket,
+                    // The deck object returned by the server doesn't contain the full 'id' 
+                    // needed for the link, so we'll need to re-fetch the deck ID 
+                    // for the URL if the server stripped it, OR, 
+                    // if the server returned the ID, we use that.
+                    // Assuming the server response includes 'id' for the link:
+                    url: `https://archidekt.com/decks/${deck.id}` 
+                }));
+
+        } catch (error) {
+            console.error('Error fetching folder decks:', error);
+            throw error;
         }
+    }
+
+    function organizeDecksByBracket() {
+        decksByBracket = {};
+        currentDecks.forEach(deck => {
+            // 💡 FIX: The server is sending 'edhBracket', but your client-side
+            // code maps it to 'bracket' in the previous step. Let's make sure
+            // the object key is 'bracket' for consistency.
+            const bracket = deck.bracket; 
+            if (!decksByBracket[bracket]) decksByBracket[bracket] = [];
+            decksByBracket[bracket].push(deck);
+        });
+    }
 
         function renderBrackets() {
             bracketGrid.innerHTML = '';
