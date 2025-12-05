@@ -17,7 +17,13 @@ app.use((req, res, next) => {
 app.get('/api/decks/:deckId', async (req, res) => {
   const { deckId } = req.params;
   try {
-    const response = await fetch(`https://archidekt.com/api/decks/${deckId}/`);
+const response = await fetch(`https://archidekt.com/folders/${folderId}`, {
+  // provide user agent information to prevent target server blocking request
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+    });
+    
     if (!response.ok) {
       return res.status(response.status).json({ error: `Failed to fetch deck ${deckId}` });
     }
