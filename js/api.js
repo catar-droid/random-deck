@@ -1,4 +1,12 @@
 // =========================
+// API.JS
+// =========================
+/**
+* Contains all network fetching, data transformation, and utility functions that don't directly touch the DOM.
+*/
+
+
+// =========================
 // Configuration
 // =========================
 export const proxyUrl = 'https://random-deck.onrender.com';
@@ -10,19 +18,14 @@ export const playerFolderIds = {
 };
 
 // =========================
-// State
-// =========================
-export let currentDecks = [];
-export let decksByBracket = {};
-
-// =========================
-// Functions
+// Data Fetching & Processing Functions
 // =========================
 
 /**
- * Fetches player's deck list from their Archidekt folder via our proxy
+ * Fetches and processes player's deck list from their Archidekt folder via our proxy.
+ * Filters out decks without a valid bracket.
  * @param {string} folderId The Archidekt folder ID
- * @returns {Promise<Array<Object>>} A promise that resolves to an array of deck objects.
+ * @returns {Promise<Array<Object>>} A promise that resolves to an array of processed deck objects.
  */
 export async function fetchPlayerDecksFromFolder(folderId) {
     try {
@@ -39,7 +42,6 @@ export async function fetchPlayerDecksFromFolder(folderId) {
             throw new Error('Invalid deck data structure');
         }
 
-        // Filter out decks where the bracket was not successfully mapped
         return userDecks
             .filter(deck => deck.edhBracket !== 'Not Found' && deck.edhBracket != null)
             .map(deck => ({
@@ -48,8 +50,8 @@ export async function fetchPlayerDecksFromFolder(folderId) {
                 // Map the server's edhBracket to the client's expected 'bracket' key
                 bracket: deck.edhBracket,
                 url: `https://archidekt.com/decks/${deck.id}`,
-                // Store color data if available
-                colors: deck.colors || null
+                // Keep the color data if the server provided it
+                colors: deck.colors || null 
             }));
 
     } catch (error) {
@@ -59,7 +61,9 @@ export async function fetchPlayerDecksFromFolder(folderId) {
 }
 
 /**
- * Organizes the global currentDecks array into decksByBracket map.
+ * Organizes a flat deck array into a map keyed by the deck's bracket number.
+ * @param {Array<Object>} decks
+ * @returns {Object} A map of { 'bracket': [decks] }
  */
 export function organizeDecksByBracket(decks) {
     const organizedDecks = {};
@@ -84,3 +88,8 @@ export function selectRandomDeck(bracket, organizedDecks) {
     }
     return decks[Math.floor(Math.random() * decks.length)];
 }
+
+// NOTE: The fetchDeckDetails function from your prompt has been omitted 
+// from the refactored api.js because it was not being used by main.js, 
+// maintaining a focus on cleaning up unused code. 
+// If you need it, add it back and use it within main.js/loadPlayerDecks.
