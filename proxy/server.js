@@ -51,30 +51,38 @@ app.get('/api/folders/:folderId', async (req, res) => {
     });
 
     if (!response.ok) {
-      console.error(`Fetch failed with status: ${response.status}`);
-      return res.status(response.status).json({ error: `Failed to fetch folder ${folderId}` });
+      // 💡 NEW/IMPROVED LOGGING: Log the specific Archidekt status code
+      console.error(`Archidekt fetch failed with status: ${response.status}`);
+      return res.status(response.status).json({ error: `Failed to fetch folder from Archidekt: ${response.status}` });
     }
     const html = await response.text();
     
-    // 💡 DIAGNOSTIC 1: Check if the fetched HTML is surprisingly small (a sign of blocking)
-    console.log(`Fetched HTML size: ${html.length} bytes`); 
-
     // 1. Locate and Extract the __NEXT_DATA__ JSON string
-    // Using a slightly simpler regex in case of slight formatting changes
+    // This regex is the most likely failure point if the JSON.parse fails.
     const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]+?)<\/script>/);
 
     if (!match || match.length < 2) {
-      // 💡 DIAGNOSTIC 2: Log failure if the script tag is not found
       console.error('Extraction failed: Could not find __NEXT_DATA__ script content.');
-      // Optional: Log a snippet of the HTML to inspect (be careful with length)
-      // console.log('HTML snippet:', html.substring(0, 500)); 
-      return res.status(500).json({ error: 'Could not find or extract NEXT_DATA script content' });
+      // 💡 ADDED DIAGNOSTIC: Send the first part of the HTML to the client for inspection
+      return res.status(500).json({ 
+          error: 'Could not find or extract NEXT_DATA script content.', 
+          html_preview: html.substring(0, 500) 
+      });
     }
     
     const dataText = match[1].trim(); 
     
     // 2. Parse the JSON
-    const nextData = JSON.parse(dataText);
+    const nextData = JSON.parse(dataText); // 👈 THIS LINE IS THE MOST LIKELY SOURCE OF A CRASH
+    
+    // ... (rest of the extraction and response) ...
+
+  } catch (err) {
+    // 💡 CRITICAL LOGGING: This will catch the JSON.parse error and print it to your server logs
+    console.error(`CRITICAL SERVER ERROR in folder endpoint: ${err.message}`);
+    res.status(500).json({ error: `CRITICAL SERVER ERROR: ${err.message}` });
+  }
+});
     
     // 3. Extract the required deck information
     // Current Path: nextData?.props?.pageProps?.folder?.decks
