@@ -192,11 +192,11 @@ option {
 }
 
 /* MTG Mana Colors */
-.color-W { background: #f9fae5; }
-.color-U { background: #aae0fa; }
-.color-B { background: #cbc2bf; }
-.color-R { background: #f9aa8f; }
-.color-G { background: #9bd3ae; }
+.color-W { background: #FBF6D3; }
+.color-U { background: #96C4D4; }
+.color-B { background: #B0A8A3; }
+.color-R { background: #D88F73; }
+.color-G { background: #93CBA4; }
 
 .deck-link {
     color: #d8b4fe;
