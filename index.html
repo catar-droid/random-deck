@@ -315,10 +315,10 @@
         // =========================
         const proxyUrl = 'https://random-deck.onrender.com/api/decks/';
 
-        const playerDeckIds = {
-            catar: [17452615, 12724013, 12721698, 4834917, 16157808, 12721818, 12723622, 12724320, 12721529, 12877086, 12724082, 12721904, 12723944, 12724426, 12724382, 12723766, 12722429, 12722626, 12723709, 12722171, 12721379, 12722317, 12721767],
-            timmsen: [15823364, 7217237, 7630552, 13137118, 9306087, 4897549, 15500438, 12846990, 10956256],
-            failbob: [17685060, 14797112, 14805167, 17580409, 13194956]
+        const playerFolderUrls = {
+            catar: 'https://archidekt.com/folders/397706',
+            timmsen: 'https://archidekt.com/folders/966685',
+            failbob: 'https://archidekt.com/folders/966113'
         };
 
         // =========================
@@ -361,40 +361,71 @@
             hideError();
 
             try {
-                const deckIds = playerDeckIds[username];
-                if (!deckIds || deckIds.length === 0) throw new Error('No decks found for this player');
+                const folderUrl = playerFolderUrls[username];
+                if (!folderUrl) throw new Error('No folder URL found for this player');
 
-                const deckPromises = deckIds.map(id => fetchDeckViaProxy(id));
-                const decks = await Promise.all(deckPromises);
+                // Fetch the player's folder page
+                const decks = await fetchPlayerDecksFromFolder(folderUrl);
 
-                currentDecks = decks.filter(deck => deck !== null);
-                if (currentDecks.length === 0) throw new Error('Failed to load any decks.');
+                if (decks.length === 0) {
+                    throw new Error('No decks found for this player');
+                }
 
+                currentDecks = decks;
                 organizeDecksByBracket();
                 renderBrackets();
                 renderStats();
                 hideLoading();
             } catch (err) {
                 hideLoading();
-                showError(err.message);
+                showError(`Error loading decks: ${err.message}`);
                 console.error(err);
             }
         }
 
-        async function fetchDeckViaProxy(deckId) {
+        /**
+         * Fetches player's deck list from their Archidekt folder page
+         */
+        async function fetchPlayerDecksFromFolder(folderUrl) {
             try {
-                const res = await fetch(`${proxyUrl}${deckId}`);
-                if (!res.ok) throw new Error(`Failed to fetch deck ${deckId}`);
-                const data = await res.json();
-                return {
-                    id: data.id,
-                    name: data.name,
-                    bracket: data.edhBracket ?? 'Unknown',
-                    url: `https://archidekt.com/decks/${data.id}`
-                };
-            } catch (err) {
-                console.warn(err);
-                return null;
+                // Use CORS proxy to fetch the folder page
+                const proxyFolderUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(folderUrl)}`;
+                const response = await fetch(proxyFolderUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch folder page: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const html = data.contents;
+
+                // Extract the Next.js data from the page
+                const scriptMatch = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/s);
+                
+                if (!scriptMatch) {
+                    throw new Error('Could not find deck data in folder page');
+                }
+
+                const jsonData = JSON.parse(scriptMatch[1]);
+                const userDecks = jsonData.props?.pageProps?.user?.decks;
+
+                if (!userDecks || !Array.isArray(userDecks)) {
+                    throw new Error('Invalid deck data structure in folder page');
+                }
+
+                // Map to our deck format, filtering out decks without brackets
+                return userDecks
+                    .filter(deck => deck.edhBracket != null)
+                    .map(deck => ({
+                        id: deck.id,
+                        name: deck.name,
+                        bracket: deck.edhBracket,
+                        url: `https://archidekt.com/decks/${deck.id}`
+                    }));
+
+            } catch (error) {
+                console.error('Error fetching folder decks:', error);
+                throw error;
             }
         }
 
