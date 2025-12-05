@@ -1,208 +1,137 @@
-import { 
-    playerFolderIds, 
-    fetchPlayerDecksFromFolder, 
-    fetchDeckDetails,
-    organizeDecksByBracket, 
-    selectRandomDeck 
-} from './api.js';
+// =========================
+// Configuration
+// =========================
+export const proxyUrl = 'https://random-deck.onrender.com';
+
+export const playerFolderIds = {
+    catar: '397706',
+    timmsen: '966685',
+    failbob: '966113'
+};
 
 // =========================
-// Global State
+// State
 // =========================
-let currentDecks = [];
-let decksByBracket = {};
+export let currentDecks = [];
+export let decksByBracket = {};
 
 // =========================
-// DOM Elements
-// =========================
-const playerSelect = document.getElementById('playerSelect');
-const loadingDiv = document.getElementById('loading');
-const errorDiv = document.getElementById('error');
-const bracketSection = document.getElementById('bracketSection');
-const bracketGrid = document.getElementById('bracketGrid');
-const resultDiv = document.getElementById('result');
-const statsCard = document.getElementById('statsCard');
-const statsGrid = document.getElementById('statsGrid');
-const statsTotal = document.getElementById('statsTotal');
-
-// =========================
-// UI Helpers
-// =========================
-function resetUI() {
-    currentDecks = [];
-    decksByBracket = {};
-    bracketGrid.innerHTML = '';
-    bracketSection.classList.add('hidden');
-    resultDiv.innerHTML = '';
-    statsCard.classList.add('hidden');
-    hideError();
-}
-function showLoading() { loadingDiv.classList.remove('hidden'); }
-function hideLoading() { loadingDiv.classList.add('hidden'); }
-function showError(msg) { errorDiv.textContent = msg; errorDiv.classList.remove('hidden'); }
-function hideError() { errorDiv.classList.add('hidden'); }
-function escapeHTML(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
-
-// =========================
-// Color Bar Functions
+// Functions
 // =========================
 
 /**
- * Creates a color bar HTML element from color data
- * @param {Object} colors - Object with W, U, B, R, G keys and their counts
- * @returns {string} HTML string for the color bar
+ * Fetches player's deck list from their Archidekt folder via our proxy
+ * @param {string} folderId The Archidekt folder ID
+ * @returns {Promise<Array<Object>>} A promise that resolves to an array of deck objects.
  */
-function createColorBar(colors) {
-    // Calculate total to get percentages
-    const total = Object.values(colors).reduce((sum, val) => sum + val, 0);
-    
-    // If no colors, return empty
-    if (total === 0) {
-        return '';
-    }
-    
-    // Build segments
-    let segmentsHTML = '';
-    const colorOrder = ['W', 'U', 'B', 'R', 'G']; // Standard WUBRG order
-    
-    colorOrder.forEach(color => {
-        const value = colors[color] || 0;
-        if (value > 0) {
-            const percentage = (value / total) * 100;
-            segmentsHTML += `<div class="color-segment color-${color}" style="width: ${percentage}%"></div>`;
-        }
-    });
-    
-    return `<div class="color-bar-container">${segmentsHTML}</div>`;
-}
-
-// =========================
-// Rendering Functions
-// =========================
-
-function renderBrackets() {
-    bracketGrid.innerHTML = '';
-    bracketSection.classList.remove('hidden');
-
-    Object.keys(decksByBracket).sort((a, b) => a - b).forEach(bracket => {
-        const btn = document.createElement('button');
-        btn.className = 'bracket-btn';
-        btn.innerHTML = `
-            <div class="bracket-number">${bracket}</div>
-            <div class="bracket-count">${decksByBracket[bracket].length} decks</div>
-        `;
-        btn.addEventListener('click', () => handleDeckSelection(bracket));
-        bracketGrid.appendChild(btn);
-    });
-}
-
-function renderStats() {
-    statsGrid.innerHTML = '';
-    statsCard.classList.remove('hidden');
-
-    Object.keys(decksByBracket).sort((a, b) => a - b).forEach(bracket => {
-        const stat = document.createElement('div');
-        stat.innerHTML = `
-            <div class="stat-number">${decksByBracket[bracket].length}</div>
-            <div class="stat-label">Bracket ${bracket}</div>
-        `;
-        statsGrid.appendChild(stat);
-    });
-
-    statsTotal.innerHTML = 
-        `<span style="font-weight: 600;">Total:</span> ${currentDecks.length} decks`;
-}
-
-async function displayDeck(deck) {
-    // Show loading state
-    resultDiv.innerHTML = `
-        <div class="result-card">
-            <div class="result-header">
-                <h2 class="deck-name">${escapeHTML(deck.name)}</h2>
-                <span class="bracket-badge">Bracket ${deck.bracket}</span>
-            </div>
-            <div style="text-align: center; padding: 1rem;">
-                <div class="spinner"></div>
-                <p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.7);">Loading deck details...</p>
-            </div>
-        </div>
-    `;
-    
-    // Fetch deck details for color information
-    const deckDetails = await fetchDeckDetails(deck.id);
-    
-    // Create color bar HTML
-    const colorBarHTML = createColorBar(deckDetails.colors);
-    
-    // Display complete deck information
-    resultDiv.innerHTML = `
-        <div class="result-card">
-            <div class="result-header">
-                <h2 class="deck-name">${escapeHTML(deck.name)}</h2>
-                <span class="bracket-badge">Bracket ${deck.bracket}</span>
-            </div>
-            ${colorBarHTML}
-            <a href="${deck.url}" target="_blank" rel="noopener noreferrer" class="deck-link">
-                View on Archidekt →
-            </a>
-        </div>
-    `;
-}
-
-// =========================
-// Main Logic Handlers
-// =========================
-
-async function loadPlayerDecks(username) {
-    showLoading();
-    hideError();
-
+export async function fetchPlayerDecksFromFolder(folderId) {
     try {
-        const folderId = playerFolderIds[username];
-        if (!folderId) throw new Error('No folder ID found for this player');
-
-        // Fetch decks using the API function
-        const decks = await fetchPlayerDecksFromFolder(folderId);
-
-        if (decks.length === 0) {
-            throw new Error('No decks found for this player (or none with a valid bracket)');
+        const response = await fetch(`${proxyUrl}/api/folders/${folderId}`);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch folder: ${response.status}`);
         }
 
-        currentDecks = decks;
-        // Organize decks using the API function
-        decksByBracket = organizeDecksByBracket(currentDecks); 
+        const data = await response.json();
+        const userDecks = data.decks;
+
+        if (!userDecks || !Array.isArray(userDecks)) {
+            throw new Error('Invalid deck data structure');
+        }
+
+        // Filter out decks where the bracket was not successfully mapped
+        return userDecks
+            .filter(deck => deck.edhBracket !== 'Not Found' && deck.edhBracket != null)
+            .map(deck => ({
+                id: deck.id,
+                name: deck.name,
+                // Map the server's edhBracket to the client's expected 'bracket' key
+                bracket: deck.edhBracket,
+                url: `https://archidekt.com/decks/${deck.id}`,
+                // Store color data if available
+                colors: deck.colors || null
+            }));
+
+    } catch (error) {
+        console.error('Error fetching folder decks:', error);
+        throw error;
+    }
+}
+
+/**
+ * Fetches detailed deck information including color identity
+ * @param {string} deckId The Archidekt deck ID
+ * @returns {Promise<Object>} Deck details with color information
+ */
+export async function fetchDeckDetails(deckId) {
+    try {
+        const response = await fetch(`https://archidekt.com/api/decks/${deckId}/`);
         
-        renderBrackets();
-        renderStats();
-        hideLoading();
-    } catch (err) {
-        hideLoading();
-        showError(`Error loading decks: ${err.message}`);
-        console.error(err);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch deck details: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Extract color identity - usually available in the commander cards
+        let colors = { W: 0, U: 0, B: 0, R: 0, G: 0 };
+        
+        // Try to get color identity from the deck's cards
+        if (data.cards && Array.isArray(data.cards)) {
+            // Count mana symbols in commander zone cards
+            const commanderCards = data.cards.filter(card => 
+                card.categories && card.categories.includes('Commander')
+            );
+            
+            if (commanderCards.length > 0) {
+                commanderCards.forEach(card => {
+                    if (card.card && card.card.oracleCard) {
+                        const colorIdentity = card.card.oracleCard.colorIdentity || [];
+                        colorIdentity.forEach(color => {
+                            if (colors.hasOwnProperty(color)) {
+                                colors[color] = 1;
+                            }
+                        });
+                    }
+                });
+            }
+        }
+        
+        return {
+            colors: colors
+        };
+    } catch (error) {
+        console.error('Error fetching deck details:', error);
+        // Return default colors if fetch fails
+        return {
+            colors: { W: 0, U: 0, B: 0, R: 0, G: 0 }
+        };
     }
 }
 
-function handlePlayerSelection() {
-    const username = playerSelect.value;
-    resetUI();
-    if (!username) return;
-    loadPlayerDecks(username);
+/**
+ * Organizes the global currentDecks array into decksByBracket map.
+ */
+export function organizeDecksByBracket(decks) {
+    const organizedDecks = {};
+    decks.forEach(deck => {
+        const bracket = deck.bracket;
+        if (!organizedDecks[bracket]) organizedDecks[bracket] = [];
+        organizedDecks[bracket].push(deck);
+    });
+    return organizedDecks;
 }
 
-function handleDeckSelection(bracket) {
-    const deck = selectRandomDeck(bracket, decksByBracket);
-    if (!deck) {
-        showError('No decks available in this bracket');
-        return;
+/**
+ * Picks a random deck from a specific bracket.
+ * @param {string} bracket 
+ * @param {Object} organizedDecks
+ * @returns {Object|null} A random deck object, or null.
+ */
+export function selectRandomDeck(bracket, organizedDecks) {
+    const decks = organizedDecks[bracket];
+    if (!decks || decks.length === 0) {
+        return null;
     }
-    displayDeck(deck);
+    return decks[Math.floor(Math.random() * decks.length)];
 }
-
-// =========================
-// Initialization
-// =========================
-playerSelect.addEventListener('change', handlePlayerSelection);
