@@ -4,11 +4,10 @@
 /**
 * Handles all DOM manipulation, state management, and event listeners, importing necessary functions from api.js
 */
-
-
 import { 
     playerFolderIds, 
     fetchPlayerDecksFromFolder, 
+    fetchDeckDetails,
     organizeDecksByBracket, 
     selectRandomDeck 
 } from './api.js';
@@ -55,6 +54,39 @@ function escapeHTML(str) {
 }
 
 // =========================
+// Color Bar Functions
+// =========================
+
+/**
+ * Creates a color bar HTML element from color data
+ * @param {Object} colors - Object with W, U, B, R, G keys and their counts
+ * @returns {string} HTML string for the color bar
+ */
+function createColorBar(colors) {
+    // Calculate total to get percentages
+    const total = Object.values(colors).reduce((sum, val) => sum + val, 0);
+    
+    // If no colors, return empty
+    if (total === 0) {
+        return '';
+    }
+    
+    // Build segments
+    let segmentsHTML = '';
+    const colorOrder = ['W', 'U', 'B', 'R', 'G']; // Standard WUBRG order
+    
+    colorOrder.forEach(color => {
+        const value = colors[color] || 0;
+        if (value > 0) {
+            const percentage = (value / total) * 100;
+            segmentsHTML += `<div class="color-segment color-${color}" style="width: ${percentage}%"></div>`;
+        }
+    });
+    
+    return `<div class="color-bar-container">${segmentsHTML}</div>`;
+}
+
+// =========================
 // Rendering Functions
 // =========================
 
@@ -62,7 +94,6 @@ function renderBrackets() {
     bracketGrid.innerHTML = '';
     bracketSection.classList.remove('hidden');
 
-    // Sort brackets numerically
     Object.keys(decksByBracket).sort((a, b) => a - b).forEach(bracket => {
         const btn = document.createElement('button');
         btn.className = 'bracket-btn';
@@ -92,13 +123,35 @@ function renderStats() {
         `<span style="font-weight: 600;">Total:</span> ${currentDecks.length} decks`;
 }
 
-function displayDeck(deck) {
+async function displayDeck(deck) {
+    // Show loading state
     resultDiv.innerHTML = `
         <div class="result-card">
             <div class="result-header">
                 <h2 class="deck-name">${escapeHTML(deck.name)}</h2>
                 <span class="bracket-badge">Bracket ${deck.bracket}</span>
             </div>
+            <div style="text-align: center; padding: 1rem;">
+                <div class="spinner"></div>
+                <p style="margin-top: 1rem; color: rgba(255, 255, 255, 0.7);">Loading deck details...</p>
+            </div>
+        </div>
+    `;
+    
+    // Fetch deck details for color information
+    const deckDetails = await fetchDeckDetails(deck.id);
+    
+    // Create color bar HTML
+    const colorBarHTML = createColorBar(deckDetails.colors);
+    
+    // Display complete deck information
+    resultDiv.innerHTML = `
+        <div class="result-card">
+            <div class="result-header">
+                <h2 class="deck-name">${escapeHTML(deck.name)}</h2>
+                <span class="bracket-badge">Bracket ${deck.bracket}</span>
+            </div>
+            ${colorBarHTML}
             <a href="${deck.url}" target="_blank" rel="noopener noreferrer" class="deck-link">
                 View on Archidekt →
             </a>
@@ -118,7 +171,7 @@ async function loadPlayerDecks(username) {
         const folderId = playerFolderIds[username];
         if (!folderId) throw new Error('No folder ID found for this player');
 
-        // Fetch and process decks using imported API function
+        // Fetch decks using the API function
         const decks = await fetchPlayerDecksFromFolder(folderId);
 
         if (decks.length === 0) {
@@ -126,7 +179,7 @@ async function loadPlayerDecks(username) {
         }
 
         currentDecks = decks;
-        // Organize decks using imported utility function
+        // Organize decks using the API function
         decksByBracket = organizeDecksByBracket(currentDecks); 
         
         renderBrackets();
@@ -134,8 +187,6 @@ async function loadPlayerDecks(username) {
         hideLoading();
     } catch (err) {
         hideLoading();
-        // Clear old results/brackets on error
-        resetUI(); 
         showError(`Error loading decks: ${err.message}`);
         console.error(err);
     }
@@ -154,15 +205,10 @@ function handleDeckSelection(bracket) {
         showError('No decks available in this bracket');
         return;
     }
-    // Clear previous error message on success
-    hideError(); 
     displayDeck(deck);
 }
 
 // =========================
 // Initialization
 // =========================
-// Wait for the DOM to be fully parsed before attaching listeners
-document.addEventListener('DOMContentLoaded', () => {
-    playerSelect.addEventListener('change', handlePlayerSelection);
-});
+playerSelect.addEventListener('change', handlePlayerSelection);
