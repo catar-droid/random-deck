@@ -91,6 +91,7 @@ app.get('/api/folders/:folderId', async (req, res) => {
 
     const deckInfo = userDecks.map(deck => ({
       name: deck.name,
+      id: deck.id,
       // handle situation when user didnt provide bracket
       edhBracket: deck.bracketNumber || 'Not Found'
     }));
