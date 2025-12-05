@@ -61,6 +61,57 @@ export async function fetchPlayerDecksFromFolder(folderId) {
 }
 
 /**
+ * Fetches detailed deck information including color identity
+ * @param {string} deckId The Archidekt deck ID
+ * @returns {Promise<Object>} Deck details with color information
+ */
+export async function fetchDeckDetails(deckId) {
+    try {
+        const response = await fetch(`https://archidekt.com/api/decks/${deckId}/`);
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch deck details: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Extract color identity - usually available in the commander cards
+        let colors = { W: 0, U: 0, B: 0, R: 0, G: 0 };
+        
+        // Try to get color identity from the deck's cards
+        if (data.cards && Array.isArray(data.cards)) {
+            // Count mana symbols in commander zone cards
+            const commanderCards = data.cards.filter(card => 
+                card.categories && card.categories.includes('Commander')
+            );
+            
+            if (commanderCards.length > 0) {
+                commanderCards.forEach(card => {
+                    if (card.card && card.card.oracleCard) {
+                        const colorIdentity = card.card.oracleCard.colorIdentity || [];
+                        colorIdentity.forEach(color => {
+                            if (colors.hasOwnProperty(color)) {
+                                colors[color] = 1;
+                            }
+                        });
+                    }
+                });
+            }
+        }
+        
+        return {
+            colors: colors
+        };
+    } catch (error) {
+        console.error('Error fetching deck details:', error);
+        // Return default colors if fetch fails
+        return {
+            colors: { W: 0, U: 0, B: 0, R: 0, G: 0 }
+        };
+    }
+}
+
+/**
  * Organizes a flat deck array into a map keyed by the deck's bracket number.
  * @param {Array<Object>} decks
  * @returns {Object} A map of { 'bracket': [decks] }
@@ -88,8 +139,3 @@ export function selectRandomDeck(bracket, organizedDecks) {
     }
     return decks[Math.floor(Math.random() * decks.length)];
 }
-
-// NOTE: The fetchDeckDetails function from your prompt has been omitted 
-// from the refactored api.js because it was not being used by main.js, 
-// maintaining a focus on cleaning up unused code. 
-// If you need it, add it back and use it within main.js/loadPlayerDecks.
