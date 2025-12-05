@@ -172,6 +172,32 @@ option {
     white-space: nowrap;
 }
 
+/* Color Bar Styles */
+.color-bar-container {
+    margin: 1rem 0;
+    height: 50px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    display: flex;
+}
+
+.color-segment {
+    height: 100%;
+    transition: opacity 0.2s;
+}
+
+.color-segment:hover {
+    opacity: 0.85;
+}
+
+/* MTG Mana Colors */
+.color-W { background: #f9fae5; }
+.color-U { background: #aae0fa; }
+.color-B { background: #cbc2bf; }
+.color-R { background: #f9aa8f; }
+.color-G { background: #9bd3ae; }
+
 .deck-link {
     color: #d8b4fe;
     text-decoration: underline;
