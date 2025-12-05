@@ -1,6 +1,3 @@
-// =========================
-// API.JS
-// =========================
 /**
 * Contains all network fetching, data transformation, and utility functions that don't directly touch the DOM.
 */
@@ -24,7 +21,9 @@ export const playerFolderIds = {
 /**
  * Fetches and processes player's deck list from their Archidekt folder via our proxy.
  * Filters out decks without a valid bracket.
- * @param {string} folderId The Archidekt folder ID
+ * * NOTE: The 'colors' property is included in the response from the proxy server,
+ * making a separate fetch for deck details unnecessary.
+ * * @param {string} folderId The Archidekt folder ID
  * @returns {Promise<Array<Object>>} A promise that resolves to an array of processed deck objects.
  */
 export async function fetchPlayerDecksFromFolder(folderId) {
@@ -50,7 +49,7 @@ export async function fetchPlayerDecksFromFolder(folderId) {
                 // Map the server's edhBracket to the client's expected 'bracket' key
                 bracket: deck.edhBracket,
                 url: `https://archidekt.com/decks/${deck.id}`,
-                // Keep the color data if the server provided it
+                // The colors property is already available from the folder API response
                 colors: deck.colors || null 
             }));
 
@@ -60,56 +59,7 @@ export async function fetchPlayerDecksFromFolder(folderId) {
     }
 }
 
-/**
- * Fetches detailed deck information including color identity
- * @param {string} deckId The Archidekt deck ID
- * @returns {Promise<Object>} Deck details with color information
- */
-export async function fetchDeckDetails(deckId) {
-    try {
-        const response = await fetch(`https://archidekt.com/api/decks/${deckId}/`);
-        
-        if (!response.ok) {
-            throw new Error(`Failed to fetch deck details: ${response.status}`);
-        }
-
-        const data = await response.json();
-        
-        // Extract color identity - usually available in the commander cards
-        let colors = { W: 0, U: 0, B: 0, R: 0, G: 0 };
-        
-        // Try to get color identity from the deck's cards
-        if (data.cards && Array.isArray(data.cards)) {
-            // Count mana symbols in commander zone cards
-            const commanderCards = data.cards.filter(card => 
-                card.categories && card.categories.includes('Commander')
-            );
-            
-            if (commanderCards.length > 0) {
-                commanderCards.forEach(card => {
-                    if (card.card && card.card.oracleCard) {
-                        const colorIdentity = card.card.oracleCard.colorIdentity || [];
-                        colorIdentity.forEach(color => {
-                            if (colors.hasOwnProperty(color)) {
-                                colors[color] = 1;
-                            }
-                        });
-                    }
-                });
-            }
-        }
-        
-        return {
-            colors: colors
-        };
-    } catch (error) {
-        console.error('Error fetching deck details:', error);
-        // Return default colors if fetch fails
-        return {
-            colors: { W: 0, U: 0, B: 0, R: 0, G: 0 }
-        };
-    }
-}
+// NOTE: The fetchDeckDetails function has been removed as it is no longer used.
 
 /**
  * Organizes a flat deck array into a map keyed by the deck's bracket number.
