@@ -49,7 +49,7 @@ app.get('/api/folders/:folderId', async (req, res) => {
     }
 
     const jsonData = JSON.parse(scriptMatch[1]);
-    const userDecks = jsonData.props?.pageProps?.user?.decks;
+    const userDecks = jsonData?.props?.pageProps?.user?.decks;
 
     if (!userDecks || !Array.isArray(userDecks)) {
       return res.status(500).json({ error: 'Invalid deck data structure' });
