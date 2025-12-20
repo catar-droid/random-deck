@@ -6,7 +6,8 @@ export const proxyUrl = 'https://random-deck.onrender.com';
 export const playerFolderIds = {
     catar: '397706',
     timmsen: '966685',
-    failbob: '966113'
+    failbob: '966113',
+    Nenc0: '1337367'
 };
 
 // =========================
