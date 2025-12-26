@@ -12,6 +12,7 @@ export const playerFolderIds = {
     catar: '397706',
     timmsen: '966685',
     failbob: '966113',
+    Ansgod: '1346917', 
     Spellphan: '1346653', 
     Nenc0: '1337367'
 };
